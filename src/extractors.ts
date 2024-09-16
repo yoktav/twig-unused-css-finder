@@ -1,19 +1,9 @@
-import { isValidClassName } from './utils';
+import { isValidClassName, removeBackgroundImages, removeUrlFunctions } from './utils';
 
 /**
  * Represents a set of CSS class names
  */
 type ClassSet = Set<string>;
-
-/**
- * Function type for extracting classes from content
- */
-type ClassExtractor = (content: string, classes: ClassSet) => void;
-
-/**
- * Function type for processing class strings
- */
-type ClassProcessor = (classString: string, classes: ClassSet) => void;
 
 /**
  * Options for class extraction
@@ -233,26 +223,6 @@ function processSimpleBinding(classBinding: string, classes: ClassSet): void {
       classes.add(cls.replace(/['"]/g, '').trim());
     });
   }
-}
-
-/**
- * Removes background images from a CSS content string
- *
- * @param {string} content - The CSS content to process
- * @returns {string} The processed CSS content
- */
-function removeBackgroundImages(content: string): string {
-  return content.replace(/background(-image)?:\s*url\s*\([^)]*\)[^;]*;/g, '');
-}
-
-/**
- * Removes url functions from a CSS content string
- *
- * @param {string} content - The CSS content to process
- * @returns {string} The processed CSS content
- */
-function removeUrlFunctions(content: string): string {
-  return content.replace(/url\s*\([^)]*\)/g, '');
 }
 
 /**

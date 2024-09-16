@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { log, findFiles } from './utils';
+import { log, findFiles, clearOrCreateTempDir, createFlattenedClasses, isIgnoredClass } from './utils';
 import {
   processTemplateFilesToExtractClasses,
   processCssFilesToExtractClasses,
@@ -10,68 +10,8 @@ import {
 } from './fileProcessors';
 
 /**
- * Clears the temporary directory or creates it if it doesn't exist
- *
- * @param tempDir - Path to the temporary directory
- * @param options - Options for the operation
- */
-function clearOrCreateTempDir(tempDir: string, options: { isDebug: boolean }): void {
-  if (fs.existsSync(tempDir)) {
-    // Directory exists, clear its contents
-    fs.readdirSync(tempDir).forEach((file) => {
-      const filePath = path.join(tempDir, file);
-      fs.unlinkSync(filePath);
-    });
-    log(`[INFO] Cleared contents of ${tempDir}`, options.isDebug);
-  } else {
-    // Directory doesn't exist, create it
-    fs.mkdirSync(tempDir);
-    log(`[INFO] Created directory ${tempDir}`, options.isDebug);
-  }
-}
-
-/**
- * Creates a flattened version of extracted classes
- * @param {string} inputFileName - Name of the input file
- * @param {string} outputFileName - Name of the output file
- * @param {Object} options - Options for the operation
- * @param {boolean} options.isDebug - Whether to show debug information
- * @param {string} options.uncssTempDir - Path to the temporary directory
- */
-function createFlattenedClasses(
-  inputFileName: string,
-  outputFileName: string,
-  options: { isDebug: boolean; uncssTempDir: string }
-): void {
-  const inputPath = path.join(options.uncssTempDir, inputFileName);
-  const outputPath = path.join(options.uncssTempDir, outputFileName);
-  const items: ExtractedData[] = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
-  const flattenedItems = new Set<string>();
-
-  items.forEach((item) => {
-    if (typeof item.data === 'string') {
-      item.data.split(' ').forEach((cls: string) => flattenedItems.add(cls));
-    } else if (Array.isArray(item.data)) {
-      item.data.forEach((cls: string) => flattenedItems.add(cls));
-    }
-  });
-
-  fs.writeFileSync(outputPath, JSON.stringify(Array.from(flattenedItems), null, 2));
-  log(`[INFO] Flattened classes written to: ${outputPath}`, options.isDebug);
-}
-
-/**
- * Checks if a class should be ignored based on the ignoredClassPatterns
- * @param className - The class name to check
- * @param ignoredClassPatterns - Array of RegExp patterns for classes to ignore
- * @returns True if the class should be ignored, false otherwise
- */
-function isIgnoredClass(className: string, ignoredClassPatterns: RegExp[]): boolean {
-  return ignoredClassPatterns.some((pattern) => pattern.test(className));
-}
-
-/**
  * Compares flattened classes from template and CSS files and generates a diff report
+ *
  * @param {Object} options - Options for the comparison
  * @param {boolean} options.isDebug - Whether to show debug information
  * @param {string} options.uncssTempDir - Path to the temporary directory
@@ -206,6 +146,7 @@ export interface TwigUnusedCssFinderOptions {
 
 /**
  * Initializes and runs the unused CSS classes check
+ *
  * @param {TwigUnusedCssFinderOptions} options - Options for the initialization
  */
 function initFn(options: TwigUnusedCssFinderOptions = {}): void {
@@ -274,6 +215,7 @@ function initFn(options: TwigUnusedCssFinderOptions = {}): void {
 
 /**
  * Runs the unused CSS classes check for Twig and Vue templates
+ *
  * @param {Object} options - Configuration options
  * @param {string} [options.uncssTempDir='./uncss-stats'] - Temporary directory for uncss
  * @param {string} [options.twigDir='./templates'] - Directory containing Twig templates

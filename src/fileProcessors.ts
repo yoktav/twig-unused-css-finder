@@ -1,25 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { extractClassesFromTemplate, extractClassesFromCss } from './extractors';
-
-export interface FileInfo {
-  name: string;
-  path: string;
-}
+import { FileInfo, readFileContent, writeDataToFile } from './utils';
 
 export interface ExtractedData {
   data: string[] | string;
   path: string;
-}
-
-/**
- * Reads the content of a file
- *
- * @param {string} filePath - The path to the file
- * @returns {string} The content of the file
- */
-function readFileContent(filePath: string): string {
-  return fs.readFileSync(filePath, 'utf8');
 }
 
 /**
@@ -79,18 +65,6 @@ export function processCssFilesToExtractClasses(cssFiles: FileInfo[]): Extracted
     (content) => extractClassesFromCss(content, { extractOnly: 'classes' }),
     (selectors) => selectors
   );
-}
-
-/**
- * Writes data to a file in the specified directory
- *
- * @param {ExtractedData[]} data - Array of extracted data objects
- * @param {string} fileName - Name of the output file
- * @param {string} uncssTempDir - Path to the temporary directory
- */
-function writeDataToFile(data: ExtractedData[], fileName: string, uncssTempDir: string): void {
-  const outputPath = path.join(uncssTempDir, fileName);
-  fs.writeFileSync(outputPath, JSON.stringify(data, null, 2));
 }
 
 /**
