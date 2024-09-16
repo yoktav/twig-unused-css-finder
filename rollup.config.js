@@ -1,18 +1,19 @@
 import typescript from '@rollup/plugin-typescript';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import resolve from '@rollup/plugin-node-resolve';
 
 export default {
   input: 'src/index.ts',
   output: {
     file: 'dist/bundle.js',
     format: 'cjs',
-    exports: 'named'
+    exports: 'named',
+    sourcemap: true,
   },
   plugins: [
     typescript(),
-    commonjs(),
-    resolve()
+    nodeResolve(),
+    commonjs()
   ],
   external: ['fs', 'path']
 };
