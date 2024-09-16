@@ -7,7 +7,7 @@ import * as path from 'path';
  * @param isDebugEnabled - Whether debugging is enabled
  */
 export function log(message: string, isDebugEnabled: boolean): void {
-  if (isDebugEnabled) return;
+  if (!isDebugEnabled) return;
   console.info(message);
 }
 
@@ -19,7 +19,8 @@ export function log(message: string, isDebugEnabled: boolean): void {
 export function isValidClassName(className: string): boolean {
   // Class names must start with a letter, underscore, or hyphen
   // and can be followed by letters, numbers, underscores, or hyphens
-  return /^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/.test(className);
+  const CLASS_NAME_REGEX = /^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/;
+  return CLASS_NAME_REGEX.test(className);
 }
 
 interface FileInfo {
@@ -35,17 +36,21 @@ interface FileInfo {
  */
 export function findFiles(dir: string, pattern: RegExp): FileInfo[] {
   const files: FileInfo[] = [];
-  const findFilesRecursive = (currentDir: string) => {
-    const dirFiles = fs.readdirSync(currentDir);
-    dirFiles.forEach((file) => {
-      const fullPath = path.join(currentDir, file);
-      if (fs.statSync(fullPath).isDirectory()) {
+
+  function findFilesRecursive(currentDir: string): void {
+    const dirEntries = fs.readdirSync(currentDir, { withFileTypes: true });
+
+    for (const entry of dirEntries) {
+      const fullPath = path.join(currentDir, entry.name);
+
+      if (entry.isDirectory()) {
         findFilesRecursive(fullPath);
-      } else if (pattern.test(file)) {
-        files.push({ name: file, path: fullPath });
+      } else if (pattern.test(entry.name)) {
+        files.push({ name: entry.name, path: fullPath });
       }
-    });
-  };
+    }
+  }
+
   findFilesRecursive(dir);
   return files;
 }

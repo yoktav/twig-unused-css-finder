@@ -25,8 +25,8 @@ function processFiles<T extends ExtractedData>(
 ): T[] {
   return files
     .map((file) => {
-      const content = readFileContent(file.path);
       try {
+        const content = readFileContent(file.path);
         const extractedData = extractorFn(content);
         return {
           data: dataProcessor(extractedData),
