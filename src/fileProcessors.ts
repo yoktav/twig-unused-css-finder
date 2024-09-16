@@ -1,7 +1,6 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import * as fs from 'fs';
+import * as path from 'path';
 import { extractClassesFromTemplate, extractClassesFromCss } from './extractors';
-import { UNCSS_TEMP_DIR } from './constants';
 
 interface FileInfo {
   name: string;
@@ -59,9 +58,10 @@ export function processCssFilesToExtractClasses(cssFiles: FileInfo[]): Extracted
  * Writes extracted template classes to a file
  * @param templateClasses - Array of objects containing extracted classes and file paths
  * @param fileName - Name of the output file
+ * @param uncssTempDir - Temporary directory for uncss
  */
-export function writeTemplateClassesToFile(templateClasses: ExtractedClasses[], fileName: string): void {
-  const outputPath = path.join(UNCSS_TEMP_DIR, fileName);
+export function writeTemplateClassesToFile(templateClasses: ExtractedClasses[], fileName: string, uncssTempDir: string): void {
+  const outputPath = path.join(uncssTempDir, fileName);
   fs.writeFileSync(outputPath, JSON.stringify(templateClasses, null, 2));
 }
 
@@ -69,8 +69,9 @@ export function writeTemplateClassesToFile(templateClasses: ExtractedClasses[], 
  * Writes extracted CSS selectors to a file
  * @param cssSelectors - Array of objects containing extracted selectors and file paths
  * @param fileName - Name of the output file
+ * @param uncssTempDir - Temporary directory for uncss
  */
-export function writeCssSelectorsToFile(cssSelectors: ExtractedSelectors[], fileName: string): void {
-  const outputPath = path.join(UNCSS_TEMP_DIR, fileName);
+export function writeCssSelectorsToFile(cssSelectors: ExtractedSelectors[], fileName: string, uncssTempDir: string): void {
+  const outputPath = path.join(uncssTempDir, fileName);
   fs.writeFileSync(outputPath, JSON.stringify(cssSelectors, null, 2));
 }

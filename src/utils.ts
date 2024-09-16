@@ -1,16 +1,14 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import { IS_DEBUG } from './constants';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Logs a message if debugging is enabled
  * @param message - The message to log
  * @param isDebugEnabled - Whether debugging is enabled
  */
-export function log(message: string, isDebugEnabled: boolean = IS_DEBUG): void {
-  if (isDebugEnabled) {
-    console.info(message);
-  }
+export function log(message: string, isDebugEnabled: boolean): void {
+  if (isDebugEnabled) return;
+  console.info(message);
 }
 
 /**
