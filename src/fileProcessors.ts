@@ -2,76 +2,74 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { extractClassesFromTemplate, extractClassesFromCss } from './extractors';
 
-interface FileInfo {
+export interface FileInfo {
   name: string;
   path: string;
 }
 
-interface ExtractedClasses {
-  classes: string;
+export interface ExtractedData {
+  data: string[] | string;
   path: string;
 }
 
-interface ExtractedSelectors {
-  selectors: string[];
-  path: string;
+// Generic function to read file content
+function readFileContent(filePath: string): string {
+  return fs.readFileSync(filePath, 'utf8');
 }
 
-/**
- * Processes template files to extract CSS classes
- * @param templateFiles - Array of template file objects
- * @returns Array of objects containing extracted classes and file paths
- */
-export function processTemplateFilesToExtractClasses(templateFiles: FileInfo[]): ExtractedClasses[] {
-  return templateFiles.map((file) => {
-    const content = fs.readFileSync(file.path, 'utf8');
-    const classes = extractClassesFromTemplate(content);
-    return {
-      classes: classes.join(' '),
-      path: file.path,
-    };
-  }).filter((item) => item.classes.length > 0);
+// Generic function to process files
+function processFiles<T extends ExtractedData>(
+  files: FileInfo[],
+  extractorFn: (content: string) => string[],
+  dataProcessor: (data: string[]) => T['data']
+): T[] {
+  return files
+    .map((file) => {
+      const content = readFileContent(file.path);
+      try {
+        const extractedData = extractorFn(content);
+        return {
+          data: dataProcessor(extractedData),
+          path: file.path,
+        } as T;
+      } catch (error) {
+        console.error(`Error processing file ${file.path}: ${(error as Error).message}`);
+        return null;
+      }
+    })
+    .filter((item): item is T => item !== null && item.data.length > 0);
 }
 
-/**
- * Processes CSS files to extract classes
- * @param cssFiles - Array of CSS file objects
- * @returns Array of objects containing extracted selectors and file paths
- */
-export function processCssFilesToExtractClasses(cssFiles: FileInfo[]): ExtractedSelectors[] {
-  return cssFiles.map((file) => {
-    const content = fs.readFileSync(file.path, 'utf8');
-    try {
-      const selectors = extractClassesFromCss(content, { extractOnly: 'classes' });
-      return {
-        selectors,
-        path: file.path,
-      };
-    } catch (error) {
-      console.error(`Error processing file ${file.path}: ${(error as Error).message}`);
-      return null;
-    }
-  }).filter((item): item is ExtractedSelectors => item !== null && item.selectors.length > 0);
+// Process template files
+export function processTemplateFilesToExtractClasses(templateFiles: FileInfo[]): ExtractedData[] {
+  return processFiles<ExtractedData>(
+    templateFiles,
+    extractClassesFromTemplate,
+    (classes) => classes.join(' ')
+  );
 }
 
-/**
- * Writes extracted template classes to a file
- * @param templateClasses - Array of objects containing extracted classes and file paths
- * @param fileName - Name of the output file
- * @param uncssTempDir - Temporary directory for uncss
- */
-export function writeTemplateClassesToFile(templateClasses: ExtractedClasses[], fileName: string, uncssTempDir: string): void {
+// Process CSS files
+export function processCssFilesToExtractClasses(cssFiles: FileInfo[]): ExtractedData[] {
+  return processFiles<ExtractedData>(
+    cssFiles,
+    (content) => extractClassesFromCss(content, { extractOnly: 'classes' }),
+    (selectors) => selectors
+  );
+}
+
+// Generic function to write data to file
+function writeDataToFile(data: ExtractedData[], fileName: string, uncssTempDir: string): void {
   const outputPath = path.join(uncssTempDir, fileName);
-  fs.writeFileSync(outputPath, JSON.stringify(templateClasses, null, 2));
+  fs.writeFileSync(outputPath, JSON.stringify(data, null, 2));
 }
 
-/**
- * Writes extracted CSS selectors to a file
- * @param cssSelectors - Array of objects containing extracted selectors and file paths
- * @param fileName - Name of the output file
- * @param uncssTempDir - Temporary directory for uncss
- */
-export function writeCssSelectorsToFile(cssSelectors: ExtractedSelectors[], fileName: string, uncssTempDir: string): void {
-  const outputPath = path.join(uncssTempDir, fileName);
-  fs.writeFileSync(outputPath, JSON.stringify(cssSelectors, null, 2));
+// Write template classes to file
+export function writeTemplateClassesToFile(templateClasses: ExtractedData[], fileName: string, uncssTempDir: string): void {
+  writeDataToFile(templateClasses, fileName, uncssTempDir);
+}
+
+// Write CSS selectors to file
+export function writeCssSelectorsToFile(cssSelectors: ExtractedData[], fileName: string, uncssTempDir: string): void {
+  writeDataToFile(cssSelectors, fileName, uncssTempDir);
 }

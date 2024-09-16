@@ -6,6 +6,7 @@ import {
   processCssFilesToExtractClasses,
   writeTemplateClassesToFile,
   writeCssSelectorsToFile,
+  ExtractedData // Add this import
 } from './fileProcessors';
 
 /**
@@ -38,17 +39,14 @@ function createFlattenedClasses(
 ): void {
   const inputPath = path.join(uncssTempDir, inputFileName);
   const outputPath = path.join(uncssTempDir, outputFileName);
-  const items = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
+  const items: ExtractedData[] = JSON.parse(fs.readFileSync(inputPath, 'utf8'));
   const flattenedItems = new Set<string>();
 
-  items.forEach((item: { classes?: string | string[], selectors?: string[] }) => {
-    if (Array.isArray(item.classes)) {
-      item.classes.forEach((cls) => flattenedItems.add(cls));
-    } else if (typeof item.classes === 'string') {
-      item.classes.split(' ').forEach((cls) => flattenedItems.add(cls));
-    }
-    if (Array.isArray(item.selectors)) {
-      item.selectors.forEach((selector) => flattenedItems.add(selector));
+  items.forEach((item) => {
+    if (typeof item.data === 'string') {
+      item.data.split(' ').forEach((cls: string) => flattenedItems.add(cls));
+    } else if (Array.isArray(item.data)) {
+      item.data.forEach((cls: string) => flattenedItems.add(cls));
     }
   });
 
@@ -143,13 +141,13 @@ function init(options: TwigUnusedCssFinderOptions = {}): void {
   ];
 
   log('[TASK] Processing template files and extracting CSS classes', isDebug);
-  const templateClasses = processTemplateFilesToExtractClasses(templateFiles);
+  const templateClasses: ExtractedData[] = processTemplateFilesToExtractClasses(templateFiles);
 
   log('[TASK] Reading CSS files', isDebug);
   const cssFiles = findFiles(cssDir, cssPattern);
 
   log('[TASK] Processing CSS files', isDebug);
-  const cssSelectors = processCssFilesToExtractClasses(cssFiles);
+  const cssSelectors: ExtractedData[] = processCssFilesToExtractClasses(cssFiles);
 
   log('[TASK] Writing extracted CSS classes to file', isDebug);
   writeTemplateClassesToFile(templateClasses, classesFromTemplatesFileName, uncssTempDir);
