@@ -1,6 +1,6 @@
 {
   "name": "twig-unused-css-finder",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A tool to find unused CSS in Twig templates",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
