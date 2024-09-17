@@ -35,5 +35,8 @@
     "tslib": "^2.4.0",
     "typescript": "^4.2.2"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "files": [
+    "dist"
+  ]
 }
